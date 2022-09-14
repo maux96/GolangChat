@@ -12,12 +12,20 @@ import (
 	"strconv"
 )
 
-const SERVER = "localhost"
+var SERVER = "localhost"
+var PORT = "1234"
 const refreshTime = 5
 
 var session_hash string
 var client *rpc.Client
 var userName string
+
+func init(){
+	rand.Seed(time.Now().Local().Unix())
+	rnum := strconv.FormatInt(int64(rand.Intn(50000)),10)
+	userName = "unknowUser_" + rnum
+}
+
 
 func getMessages(){
 
@@ -70,9 +78,12 @@ func resolveCommand(toSend string) bool{
 			fmt.Println(" /help       display this help")
 			fmt.Println(" /users      display all registered users")
 			fmt.Println(" /broadcast  send a message to all the registered users")
+			fmt.Println(" /whoami     print the user name")
 
 			fmt.Println("\nhttps://github.com/maux96")
 
+		case "/whoami":
+			fmt.Println(userName)
 		default:
 			return false
 	}
@@ -122,25 +133,45 @@ func register() error{
 	return nil	
 }
 
-func main(){
 
-	rand.Seed(time.Now().Local().Unix())
-	if len(os.Args)>1{
-		userName=os.Args[1]
-		userName=strings.Trim(userName," \r\n") 
-		if userName == "" || userName[0] == '$' || userName[0] =='/' {
-			panic("No permited user name!")
-		}	
-	} else {
-		rnum := strconv.FormatInt(int64(rand.Intn(50000)),10)
-		userName = "unknowUser_" + rnum
+func processArgs(){
+	for i := range os.Args{
+		switch os.Args[i]{
+			case "--name":
+				userName=os.Args[i+1]
+				userName=strings.Trim(userName," \r\n") 
+				if userName == "" || userName[0] == '$' || userName[0] =='/' {
+					fmt.Println("No permited user name!")
+					os.Exit(1)
+				}	
+
+
+			case "--server":
+				SERVER=os.Args[i+1]	
+			case "--port":
+				PORT=os.Args[i+1]	
+			case "--help":
+				fmt.Println("Help:")
+				fmt.Println("--name      Set user name.")
+				fmt.Println("--server    Set server to connect. (default: localhost)")
+				fmt.Println("--port      Set port to connect. (default: 1234)\n")
+
+				fmt.Println("\nhttps://github.com/maux96\n")
+				os.Exit(0)
+				
+		}
 	}
 
+}
+
+func main(){
+
+	processArgs()
 
 	fmt.Println("Initializing client...")		
 
 	var err error
-	client, err = rpc.DialHTTP("tcp",SERVER+":1234")
+	client, err = rpc.DialHTTP("tcp",SERVER+":"+PORT)
 	if err != nil {
 		fmt.Println("Error Dialing: ", err.Error())
 		return 
