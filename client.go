@@ -1,24 +1,28 @@
 package main
 
 import (
+	"bufio"
+	"chat/chat"
 	"fmt"
+	"math/rand"
 	"net/rpc"
 	"os"
-	"math/rand"
-	"time"
-	"chat/chat"
-	"bufio"
-	"strings"
 	"strconv"
+	"strings"
+	"time"
 )
 
-var SERVER = "localhost"
-var PORT = "1234"
-const refreshTime = 5
+var (
+	SERVER = "localhost"
+	PORT = "1234"
+ 	REFRESH_TIME = 5
+)
 
-var session_hash string
-var client *rpc.Client
-var userName string
+var (
+	userName string
+	session_hash string
+	client *rpc.Client
+)
 
 func init(){
 	rand.Seed(time.Now().Local().Unix())
@@ -40,10 +44,10 @@ func getMessages(){
 		for _,message := range reply {
 			if message.From != ""{
 				fmt.Println("\r"+message.From,":",message.Body)
-				fmt.Print(">")
+				fmt.Print("> ")
 			}
 		}
-		time.Sleep(refreshTime * 1e9)
+		time.Sleep(time.Duration(REFRESH_TIME)* 1e9)
 	}
 }
 
@@ -150,6 +154,13 @@ func processArgs(){
 				SERVER=os.Args[i+1]	
 			case "--port":
 				PORT=os.Args[i+1]	
+			case "--refresh-time":
+				var err error
+				REFRESH_TIME,err= strconv.Atoi(os.Args[i+1])
+				if err != nil {
+					fmt.Println("Error in refresh_time!")
+					os.Exit(1)
+				}
 			case "--help":
 				fmt.Println("Help:")
 				fmt.Println("--name      Set user name.")
