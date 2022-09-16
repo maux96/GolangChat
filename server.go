@@ -8,6 +8,7 @@ import (
 	"time"
 	"chat/chat"
 	"os"
+	"strconv"
 )
 
 var (
@@ -22,6 +23,12 @@ func processServerArgs(){
 				server=os.Args[i+1]	
 			case "--port":
 				port=os.Args[i+1]	
+			case "--max-dead-time":
+				deadTime,err:= strconv.Atoi(os.Args[i+1])
+				if err!=nil{
+					fmt.Println("Wrong value in --max-dead-time :",err.Error())
+				}	
+				chat.MAX_DEAD_TIME = int64(deadTime)
 			case "--help":
 				fmt.Println("Help:")
 				fmt.Println("--server    Set server address. (default: localhost)")

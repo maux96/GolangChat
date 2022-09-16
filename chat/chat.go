@@ -3,12 +3,15 @@ package chat
 import (
 	"errors"
 	"fmt"
+	"time"
 )
 
 
-var users map[string]User
+var MAX_DEAD_TIME int64=20
+
+var users map[string]*User
 func init(){
-	users=make(map[string]User)
+	users=make(map[string]*User)
 }
 
 type Chat struct {}
@@ -46,6 +49,7 @@ func (t *Chat) Recieve( hashAndUser HashAndUserName, reply *[10]Message) error {
 	}	
 	
 	user:=users[name]		
+	user.LastConnection=time.Now().Unix()
 	i := 0
 	for ;len(user.Messeges) != 0 && i < len(reply); {
 		reply[i] = <- user.Messeges
@@ -55,7 +59,8 @@ func (t *Chat) Recieve( hashAndUser HashAndUserName, reply *[10]Message) error {
 }
 
 func (t *Chat) Register( name string, reply *string ) error{
-	if _,ok := users[name] ; ok {
+	if user,ok := users[name] ; ok && time.Now().Unix()-(*user).LastConnection < MAX_DEAD_TIME {
+		fmt.Println("User Creation for '",name,"' denied, user exist!")
 		*reply = "User exists!"
 		return  errors.New("UserExist!")
 	}
