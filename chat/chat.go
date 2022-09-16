@@ -3,6 +3,7 @@ package chat
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -24,6 +25,11 @@ func (t *Chat) Send( hashAndMessage HashAndMessage, reply *string ) error{
 	if !IsHashValid(message.From,hash,users){
 		return errors.New("Invalid User")
 	}
+	
+	if strings.Trim(message.Body," \n\r") == ""{
+		return errors.New("The message can't be empty!")
+	}
+
 
 	if user,ok:=users[message.To];ok{
 		user.Messeges <- message
@@ -77,7 +83,13 @@ func (t *Chat) GetAllUsers(hashAndUser HashAndUserName, reply* string) error{
 	}				
 
 	sol := ""
-	for s := range users{
+	for s,user := range users{
+		if time.Now().Unix()-(*user).LastConnection > MAX_DEAD_TIME {
+			// the user is disconected 
+			delete(users,s)
+			fmt.Println("User",s,"removed. (max dead time)")
+			continue
+		}
 		if s == name {
 			sol+= "*"+s+"* "
 		} else {

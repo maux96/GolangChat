@@ -34,13 +34,22 @@ func init(){
 func getMessages(){
 
 	hashAndUser := chat.HashAndUserName{Hash:session_hash, Name:userName} 
+	//trainToReconnect:=2
 	for {	
 		var reply [10]chat.Message
 		err := client.Call("Chat.Recieve",hashAndUser, &reply)
 		if err != nil {
 			fmt.Println("Error in get messages",err.Error())
+			//time.Sleep(time.Duration(trainToReconnect)* 1e9)
+			//err = getServerConnection()
+			//if err != nil{
+			//	fmt.Println("Can't connect to the server, waiting for reconnect in",trainToReconnect,"seconds")
+			//	trainToReconnect*=2	
+			//}else{
+			//	trainToReconnect=2
+			//}
+			//continue
 		}
-
 		for _,message := range reply {
 			if message.From != ""{
 				fmt.Println("\r"+message.From,":",message.Body)
@@ -118,7 +127,7 @@ func startSendingMessages(){
 		var reply string	
 		err :=client.Call("Chat.Send",chat.HashAndMessage{Hash:session_hash,Message:message}, &reply)
 		if err != nil {
-			fmt.Println("Error sending the message",err.Error())
+			fmt.Println("Error sending the message:",err.Error())
 			continue
 		}
 		//fmt.Println("Message response:",reply)
@@ -175,6 +184,11 @@ func processArgs(){
 
 }
 
+func getServerConnection() (err error ){
+	client, err=rpc.DialHTTP("tcp",SERVER+":"+PORT)
+	return err 
+}
+
 func main(){
 
 	processArgs()
@@ -182,7 +196,7 @@ func main(){
 	fmt.Println("Initializing client...")		
 
 	var err error
-	client, err = rpc.DialHTTP("tcp",SERVER+":"+PORT)
+	err = getServerConnection()
 	if err != nil {
 		fmt.Println("Error Dialing: ", err.Error())
 		return 
