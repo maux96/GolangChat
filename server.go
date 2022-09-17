@@ -6,7 +6,7 @@ import (
 	"net/rpc"
 	"net/http"
 	"time"
-	"chat/chat"
+	"chat/remote_chat"
 	"os"
 	"strconv"
 )
@@ -28,7 +28,7 @@ func processServerArgs(){
 				if err!=nil{
 					fmt.Println("Wrong value in --max-dead-time :",err.Error())
 				}	
-				chat.MAX_DEAD_TIME = int64(deadTime)
+				remote_chat.MAX_DEAD_TIME = int64(deadTime)
 			case "--help":
 				fmt.Println("Help:")
 				fmt.Println("--server    Set server address. (default: localhost)")
@@ -45,7 +45,7 @@ func processServerArgs(){
 func main(){
 	processServerArgs()
 
-	err:=rpc.Register(new(chat.Chat))
+	err:=rpc.Register(new(remote_chat.Chat))
 	if err != nil {
 		fmt.Println("Error in Chat register:",err.Error())
 	}

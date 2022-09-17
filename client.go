@@ -2,7 +2,8 @@ package main
 
 import (
 	"bufio"
-	"chat/chat"
+	"chat/user"
+	"chat/message"
 	"fmt"
 	"math/rand"
 	"net/rpc"
@@ -33,10 +34,10 @@ func init(){
 
 func getMessages(){
 
-	hashAndUser := chat.HashAndUserName{Hash:session_hash, Name:userName} 
+	hashAndUser := user.HashAndUserName{Hash:session_hash, Name:userName} 
 	//trainToReconnect:=2
 	for {	
-		var reply [10]chat.Message
+		var reply [10]message.Message
 		err := client.Call("Chat.Recieve",hashAndUser, &reply)
 		if err != nil {
 			fmt.Println("Error in get messages",err.Error())
@@ -61,7 +62,7 @@ func getMessages(){
 }
 
 func resolveCommand(toSend string) bool{
-	hashAndUser:= chat.HashAndUserName{Name:userName,Hash:session_hash}
+	hashAndUser:= user.HashAndUserName{Name:userName,Hash:session_hash}
 
 	vec := strings.Split(toSend," ")
 	switch vec[0] {
@@ -78,7 +79,7 @@ func resolveCommand(toSend string) bool{
 		case "/broadcast":
 			fmt.Println("Sending to all users...")	
 			var reply string 
-			err :=client.Call("Chat.Send",chat.HashAndMessage{Hash:session_hash,Message: chat.Message{From:userName,To:"$all",Body:strings.Join(vec[1:]," ")}},&reply)
+			err :=client.Call("Chat.Send",message.HashAndMessage{Hash:session_hash,Message: message.Message{From:userName,To:"$all",Body:strings.Join(vec[1:]," ")}},&reply)
 			if err != nil {
 				fmt.Println("Error in /broadcast:",err.Error())
 				return true		
@@ -123,9 +124,9 @@ func startSendingMessages(){
 		}
 		to := strings.Trim(nameAndMessage[0]," \r\n")
 		body := strings.Trim(nameAndMessage[1]," \r\n")
-		message := chat.Message{From: userName, To:to, Body: body}
+		mess:= message.Message{From: userName, To:to, Body: body}
 		var reply string	
-		err :=client.Call("Chat.Send",chat.HashAndMessage{Hash:session_hash,Message:message}, &reply)
+		err :=client.Call("Chat.Send",message.HashAndMessage{Hash:session_hash,Message:mess}, &reply)
 		if err != nil {
 			fmt.Println("Error sending the message:",err.Error())
 			continue
